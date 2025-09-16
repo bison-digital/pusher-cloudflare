@@ -1,0 +1,42 @@
+# Source files (only publish dist)
+src/
+*.ts
+!*.d.ts
+
+# Config files
+tsconfig.json
+rollup.config.js
+.github/
+
+# Development files
+node_modules/
+.pnpm-debug.log
+pnpm-lock.yaml
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Testing
+coverage/
+.nyc_output/
+__tests__/
+*.test.ts
+*.spec.ts
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.log
+
+# Build info
+*.tsbuildinfo
