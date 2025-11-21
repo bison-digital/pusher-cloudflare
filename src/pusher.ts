@@ -35,8 +35,15 @@ export class Pusher {
     this.cluster = config.cluster || 'mt1';
     this.useTLS = config.useTLS !== false;
 
-    const protocol = this.useTLS ? 'https' : 'http';
-    this.baseUrl = `${protocol}://api-${this.cluster}.pusher.com`;
+    // Allow overriding the API host (useful to point to a soketi server)
+    if (config.host) {
+      const scheme = config.scheme || (this.useTLS ? 'https' : 'http');
+      const port = config.port ? `:${config.port}` : '';
+      this.baseUrl = `${scheme}://${config.host}${port}`;
+    } else {
+      const protocol = this.useTLS ? 'https' : 'http';
+      this.baseUrl = `${protocol}://api-${this.cluster}.pusher.com`;
+    }
   }
 
   /**
@@ -91,15 +98,20 @@ export class Pusher {
 
     try {
       const md5 = await this.computeMD5(body);
-      const signature = await this.createSignature('POST', '/apps/' + this.appId + '/events', timestamp, body, md5);
+      // Only include body_md5 in the signed string and query if we have a non-empty md5
+      const signature = await this.createSignature('POST', '/apps/' + this.appId + '/events', timestamp, md5 ? body : undefined, md5 ? md5 : undefined);
 
-      const query = new URLSearchParams({
+      const params: Record<string, string> = {
         auth_key: this.key,
         auth_timestamp: timestamp.toString(),
-        auth_version: '1.0',
-        body_md5: md5,
-        auth_signature: signature
-      });
+        auth_version: '1.0'
+      };
+      if (md5) {
+        params.body_md5 = md5;
+      }
+      params.auth_signature = signature;
+
+      const query = new URLSearchParams(params);
 
       const url = `${this.baseUrl}/apps/${this.appId}/events?${query}`;
 
@@ -147,15 +159,18 @@ export class Pusher {
 
     try {
       const md5 = await this.computeMD5(body);
-      const signature = await this.createSignature('POST', '/apps/' + this.appId + '/batch_events', timestamp, body, md5);
+      // Only include body_md5 if available
+      const signature = await this.createSignature('POST', '/apps/' + this.appId + '/batch_events', timestamp, md5 ? body : undefined, md5 ? md5 : undefined);
 
-      const query = new URLSearchParams({
+      const params: Record<string, string> = {
         auth_key: this.key,
         auth_timestamp: timestamp.toString(),
-        auth_version: '1.0',
-        body_md5: md5,
-        auth_signature: signature
-      });
+        auth_version: '1.0'
+      };
+      if (md5) params.body_md5 = md5;
+      params.auth_signature = signature;
+
+      const query = new URLSearchParams(params);
 
       const url = `${this.baseUrl}/apps/${this.appId}/batch_events?${query}`;
 

@@ -12,6 +12,12 @@ export interface PusherConfig {
   cluster?: string;
   /** Use TLS/HTTPS (default: true) */
   useTLS?: boolean;
+  /** Override host (useful for soketi) */
+  host?: string;
+  /** Override port (useful for soketi) */
+  port?: number;
+  /** Override scheme (http/https) */
+  scheme?: 'http' | 'https';
 }
 
 /**
