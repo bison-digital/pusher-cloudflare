@@ -138,6 +138,7 @@ const channels = await pusher.getChannels('presence-', {
 ```typescript
 export default {
   async fetch(request: Request, env: Env) {
+    // Production / pusher.com example using environment bindings
     const pusher = new Pusher({
       appId: env.PUSHER_APP_ID,
       key: env.PUSHER_KEY,
@@ -167,6 +168,42 @@ export default {
   }
 };
 ```
+
+### Using Soketi (self‑hosted Pusher-compatible server)
+
+Soketi implements the Pusher protocol and can be used as a drop-in replacement. In Cloudflare Workers you don't have process environment variables like in Node.js, so pass the connection parameters directly to the Pusher constructor.
+
+Start a local soketi server (Docker):
+
+```bash
+docker run -p 6001:6001 -p 9601:9601 quay.io/soketi/soketi:latest
+```
+
+Example Worker initialization pointing to soketi:
+
+```typescript
+import { Pusher } from '@bison.digital/pusher-cloudflare';
+
+const pusher = new Pusher({
+  appId: 'APP_ID',           // must match soketi app id
+  key: 'YOUR_KEY',          // must match soketi key
+  secret: 'YOUR_SECRET',    // must match soketi secret
+  host: '127.0.0.1',        // soketi host (or your soketi host)
+  port: 6001,               // soketi port (default 6001)
+  scheme: 'http',           // 'http' or 'https'
+  useTLS: false
+});
+
+// Trigger example
+await pusher.trigger('my-channel', 'my-event', { hello: 'soketi' });
+```
+
+Notes:
+- Ensure soketi app credentials (app id, key, secret) are configured in soketi (via config file or env) and match values passed to the Worker.
+- In production, never embed secrets in public code. Use Cloudflare Workers secrets (wrangler secret) or a secure store and provide them to your Worker at deploy time.
+- computeMD5: Cloudflare Workers may not provide MD5 via Web Crypto; this library attempts an MD5 digest and falls back to omitting body_md5. Soketi generally accepts requests without body_md5, but if you encounter signature/body_md5 errors, enable MD5 support by adding a small JS MD5 implementation (we can add it on request).
+- For client (browser) connections to soketi, configure pusher-js with wsHost/wsPort and enabledTransports ['ws'] — see the client usage section earlier.
+
 
 ## Migration from Standard Pusher SDK
 
