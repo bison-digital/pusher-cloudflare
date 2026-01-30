@@ -120,6 +120,7 @@ export class Pusher {
         };
       }
 
+      await response.text();
       return { success: true };
     } catch (error) {
       return {
@@ -176,6 +177,7 @@ export class Pusher {
         };
       }
 
+      await response.text();
       return { success: true };
     } catch (error) {
       return {

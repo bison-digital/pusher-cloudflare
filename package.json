@@ -1,6 +1,6 @@
 {
   "name": "@bison.digital/pusher-cloudflare",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "module",
   "description": "Pusher SDK for Cloudflare Workers - A lightweight, Worker-compatible implementation",
   "main": "dist/index.js",
